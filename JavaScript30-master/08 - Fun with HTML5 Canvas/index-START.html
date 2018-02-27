@@ -1,28 +1,81 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <title>HTML5 Canvas</title>
+  <script src="https://simplewebrtc.com/latest-v2.js"></script>
 </head>
-<body>
-<canvas id="draw" width="800" height="800"></canvas>
-<script>
-  const canvas = document.querySelector('#draw');
-  const ctx = canvas.getContext('2d');
-  canvas.width = window.innerWidth;
-  canvas.height = window.innerHeight;
-  ctx.strokeStyle = '#BADA55';
-  ctx.lineJoin = 'round';
-  ctx.lineCap = 'round';
-  let isDrawing = false;
-  
-</script>
 
-<style>
-  html, body {
-    margin:0;
-  }
-</style>
+<body>
+  <canvas id="draw" width="800" height="800"></canvas>
+  <script>
+    const canvas = document.querySelector('#draw');
+    const ctx = canvas.getContext('2d');
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+    ctx.strokeStyle = '#0af';
+    ctx.lineJoin = 'round';
+    ctx.lineCap = 'round';
+    ctx.lineWidth = 5;
+    let isDrawing = false;
+    let lastX = 0;
+    let lastY = 0;
+    let hue = 0;
+
+    function draw(e) {
+      if (!isDrawing) {
+        return;
+      }
+      ctx.beginPath();
+      ctx.moveTo(lastX, lastY);
+      ctx.lineTo(e.offsetX, e.offsetY);
+      ctx.strokeStyle = `hsl(${hue}, 100%, 50%)`
+      ctx.stroke();
+      [lastX, lastY] = [e.offsetX, e.offsetY];
+      hue++;
+      if (hue > 360) {
+        hue = 0;
+      }
+    }
+    canvas.addEventListener('mousemove', draw);
+    canvas.addEventListener('mousedown', (e) => {
+      isDrawing = true;
+      [lastX, lastY] = [e.offsetX, e.offsetY];
+    });
+    canvas.addEventListener('mouseup', () => {
+      isDrawing = false;
+    });
+    canvas.addEventListener('mouseout', () => {
+      isDrawing = false;
+    });
+    var webrtc = new SimpleWebRTC({
+      // the id/element dom element that will hold "our" video
+      localVideoEl: 'localVideo',
+      // the id/element dom element that will hold remote videos
+      remoteVideosEl: 'remotesVideos',
+      // immediately ask for camera access
+      autoRequestMedia: true
+    });
+    webrtc.on('readyToCall', function () {
+      // you can name it anything
+      webrtc.joinRoom('your awesome room name');
+    });
+  </script>
+  <video height="300" id="localVideo"></video>
+  <div id="remotesVideos"></div>
+  <style>
+    html,
+    body {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      margin: 0;
+    }
+    #localVideo {
+      position: absolute;
+    }
+  </style>
 
 </body>
+
 </html>
